@@ -2,6 +2,16 @@ import GameBoard from "./components/GameBoard"
 import PlayerInfo from "./components/playerInfo"
 import { useState } from "react"
 import Log from "./components/Log"
+import { WINNING_COMBINATIONS } from "./winning-combination"
+import GameOver from "./components/GameOver"
+
+const initialGameBoard = [
+  [null,null,null],
+  [null,null,null],
+  [null,null,null]
+];
+
+
 
 function derivedState(gameTurns) {
   let currentPlayer = 'X';
@@ -19,11 +29,35 @@ function App() {
 
   let activePlayer = derivedState(gameTurns);
   
+  let gameBoard = initialGameBoard;
+
+  for (const turn of gameTurns) {
+      const {cell, player} = turn;
+      const {row, col} = cell;
+
+      gameBoard[row][col] = player;
+  }
+
+  let winner;
+
+  for (const combination of WINNING_COMBINATIONS) {
+    const firstSquareSymbol = gameBoard[combination[0].row][combination[0].column];
+    const secondSquareSymbol = gameBoard[combination[1].row][combination[1].column];
+    const thirdSquareSymbol = gameBoard[combination[2].row][combination[2].column];
+
+    if (firstSquareSymbol && 
+      firstSquareSymbol === secondSquareSymbol && 
+      firstSquareSymbol ===thirdSquareSymbol){
+        winner =  firstSquareSymbol;
+    }
+    }
+
+  
+
+  const hasDraw = gameTurns.length === 9 && !winner;
+
+
   function selectSquareHandler(rowIndex, colIndex) {
-    // code below not optimal because we merge state. 
-    // notice we work for setGameTurns but we call activePlayer state
-    //   [{cell: {row: rowIndex, col: colIndex}, player: activePlayer},
-    // instead we want to compute the values 
 
     setGameTurns((prevTurns)=> {
       let currentPlayer = derivedState(prevTurns);
@@ -49,9 +83,10 @@ function App() {
             symbol='O'
             isActive={activePlayer === 'O'}/>
         </ol>
+        {(winner || hasDraw)? <GameOver winner={winner}/>: null}
         <GameBoard 
           onSelectSquare={selectSquareHandler}
-          turns={gameTurns}/>
+          board={gameBoard}/>
       </div>
       <Log turns={gameTurns}/>
     </main>
